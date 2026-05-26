@@ -34,11 +34,11 @@
         </div>
     </nav>
 
-    <div class="modal fade" id="modalLoginDinas" tabindex="-1" aria-labelledby="modalLoginDinasLabel" aria-hidden="true">
+    <div class="modal fade" id="modalLoginDinas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
             <div class="modal-content p-3">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="modalLoginDinasLabel">Autentikasi Admin Dinas</h5>
+                    <h5 class="modal-title fw-bold">Autentikasi Admin Dinas</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalDinas"></button>
                 </div>
                 <div class="modal-body">
@@ -47,6 +47,41 @@
                         <div class="mb-3"><label class="small fw-semibold">Password</label><input type="password" id="dinasPass" class="form-control form-control-sm" required></div>
                         <button type="submit" class="btn btn-sm btn-primary w-100" id="btnSubmitDinas">Masuk Dashboard Dinas</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalExportPDF" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-danger">🖨️ Pengaturan Cetak PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalPDF"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="small fw-semibold mb-1">Pilih Kategori Rekapitulasi:</label>
+                        <select class="form-select form-select-sm" id="pdfKategori" onchange="aturOpsiPDF()">
+                            <option value="Semua">Semua Jenjang</option>
+                            <option value="SD">Jenjang SD</option>
+                            <option value="SMP">Jenjang SMP</option>
+                            <option value="SMA">Jenjang SMA/SMK</option>
+                            <option value="Kecamatan">Berdasarkan Kecamatan</option>
+                            <option value="Sekolah">Berdasarkan Sekolah</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 d-none" id="wrapPdfKecamatan">
+                        <label class="small fw-semibold mb-1 text-primary">Filter Kecamatan Dulu:</label>
+                        <select class="form-select form-select-sm border-primary" id="pdfKecamatan" onchange="updateOpsiSekolah()"></select>
+                    </div>
+
+                    <div class="mb-4 d-none" id="wrapPdfSub">
+                        <label class="small fw-semibold mb-1" id="lblPdfSub">Pilih Detail:</label>
+                        <select class="form-select form-select-sm" id="pdfSubKategori"></select>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger w-100 fw-bold" onclick="eksekusiCetakPDF()">Unduh Dokumen PDF</button>
                 </div>
             </div>
         </div>
@@ -81,15 +116,24 @@
                         <form id="formSiswa">
                             <input type="hidden" id="idSiswa"> <input type="hidden" id="fileUrlLama"> <input type="hidden" id="statusVerifikasi">
                             <div class="mb-2"><label class="small mb-0">Nama Lengkap</label><input type="text" class="form-control form-control-sm" id="namaSiswa" required></div>
-                            <div class="mb-2"><label class="small mb-0">NISN</label><input type="number" class="form-control form-control-sm" id="nisn" required></div>
+                            <div class="row">
+                                <div class="col-7 mb-2"><label class="small mb-0">NISN</label><input type="number" class="form-control form-control-sm" id="nisn" required></div>
+                                <div class="col-5 mb-2"><label class="small mb-0">Kelas</label>
+                                    <select class="form-select form-select-sm" id="kelas" required>
+                                        <option value="">Pilih</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="row"><div class="col-6 mb-2"><label class="small mb-0">NIK</label><input type="number" class="form-control form-control-sm" id="nik" required></div><div class="col-6 mb-2"><label class="small mb-0">No. KK</label><input type="number" class="form-control form-control-sm" id="noKk" required></div></div>
                             <div class="row"><div class="col-6 mb-2"><label class="small mb-0">Tempat Lahir</label><input type="text" class="form-control form-control-sm" id="tempatLahir" required></div><div class="col-6 mb-2"><label class="small mb-0">Tanggal Lahir</label><input type="date" class="form-control form-control-sm" id="tanggalLahir" required></div></div>
                             <div class="row"><div class="col-6 mb-2"><label class="small mb-0">Jenis Kelamin</label><select class="form-select form-select-sm" id="jk" required><option value="">Pilih</option><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div><div class="col-6 mb-2"><label class="small mb-0">Umur</label><input type="number" class="form-control form-control-sm bg-light" id="umur" readonly></div></div>
                             <div class="mb-2"><label class="small mb-0">Nama Ayah</label><input type="text" class="form-control form-control-sm" id="namaAyah" required></div>
                             <div class="mb-2"><label class="small mb-0">Nama Ibu Kandung</label><input type="text" class="form-control form-control-sm" id="namaIbu" required></div>
-                            <div class="mb-2"><label class="small mb-0">Penghasilan Ortu</label><select class="form-select form-select-sm" id="penghasilan" required><option value="">Pilih Range</option><option value="Tidak Berpenghasilan">Tidak Berpenghasilan</option><option value="< Rp 500.000">&lt; Rp 500.000</option><option value="Rp 500.000 - Rp 1.000.000">Rp 500.000 - Rp 1.000.000</option><option value="Rp 1.000.000 - Rp 2.000.000">Rp 1.000.000 - Rp 2.000.000</option><option value="> Rp 2.000.000">&gt; Rp 2.000.000</option></select></div>
-                            <div class="mb-2"><label class="small mb-0">Ukuran Baju</label><select class="form-select form-select-sm" id="ukuranBaju" required><option value="">Pilih Ukuran</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option></select></div>
-                            <div class="mb-4"><label class="small mb-0 fw-bold text-danger">Upload Keterangan Kades (Maks 2MB)</label><input type="file" class="form-control form-control-sm" id="fileKades" accept="image/*,application/pdf"><small id="statusFileLama" class="text-success d-none">✔️ File tersimpan.</small></div>
+                            <div class="mb-2"><label class="small mb-0">Penghasilan Ortu</label><select class="form-select form-select-sm" id="penghasilan" required><option value="">Pilih</option><option value="Tidak Berpenghasilan">Tidak Berpenghasilan</option><option value="< Rp 500.000">&lt; Rp 500.000</option><option value="Rp 500.000 - Rp 1.000.000">Rp 500.000 - Rp 1.000.000</option><option value="Rp 1.000.000 - Rp 2.000.000">Rp 1.000.000 - Rp 2.000.000</option><option value="> Rp 2.000.000">&gt; Rp 2.000.000</option></select></div>
+                            <div class="mb-2"><label class="small mb-0">Ukuran Baju</label><select class="form-select form-select-sm" id="ukuranBaju" required><option value="">Pilih</option><option value="S">S</option><option value="M">M</option><option value="L">L</option><option value="XL">XL</option></select></div>
+                            <div class="mb-4"><label class="small mb-0 fw-bold text-danger">Upload SKTM (Maks 2MB)</label><input type="file" class="form-control form-control-sm" id="fileKades" accept="image/*,application/pdf"><small id="statusFileLama" class="text-success d-none">✔️ File tersimpan.</small></div>
                             <div class="d-flex gap-2"><button type="submit" class="btn btn-success w-100" id="btnSimpan">Simpan Data</button><button type="button" class="btn btn-secondary d-none" id="btnBatalEdit" onclick="resetForm()">Batal</button></div>
                         </form>
                     </div>
@@ -153,12 +197,12 @@
                     <div class="d-flex flex-wrap gap-2">
                         <input type="text" id="searchDinas" class="form-control form-control-sm" placeholder="🔍 Cari siswa/sekolah..." style="width: 200px;">
                         <button class="btn btn-sm btn-outline-success fw-bold" onclick="exportToExcel()">🟢 Unduh Excel</button>
-                        <button class="btn btn-sm btn-outline-danger fw-bold" onclick="exportToPDF()">🔴 Unduh PDF</button>
+                        <button class="btn btn-sm btn-outline-danger fw-bold" onclick="bukaModalPDF()">🔴 Unduh PDF</button>
                     </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover align-middle text-sm" style="font-size: 0.82rem;">
-                        <thead class="table-secondary"><tr><th>Asal Sekolah</th><th>Nama Siswa & NISN</th><th>Ekonomi Ortu</th><th>Surat Kades</th><th>Verifikasi</th><th class="text-center">Aksi Operasi</th></tr></thead>
+                        <thead class="table-secondary"><tr><th>Asal Sekolah</th><th>Nama Siswa & Identitas</th><th>Ekonomi Ortu</th><th>Surat Kades</th><th>Verifikasi</th><th class="text-center">Aksi Operasi</th></tr></thead>
                         <tbody id="tableBodyDinas"><tr><td colspan="6" class="text-center">Memuat...</td></tr></tbody>
                     </table>
                 </div>
@@ -190,7 +234,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxtgAAd9FKeNNH8eE_Tz7FXnkM_VVwvse77LlGUbHRX5CxCWe_DWl6kVBW9xDX4winTXg/exec";
+        // =====================================
+        // MASUKKAN URL WEB APP ANDA DI SINI
+        // =====================================
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWxPaOC2ovANL-OvH-gfWT-QECkfIaOEw2mVALdxXQd34zMtYrTs1Oayd54gAugxz_xw/exec";
         
         let sessionInfo = { npsn: null, namaSekolah: null, waOperator: null, dinasUser: null, role: null };
         let currentDataSiswa = [];
@@ -198,19 +245,14 @@
         let loginStep = 1; 
 
         function bukaModalDinas() {
-            try {
-                let modalInstance = new bootstrap.Modal(document.getElementById('modalLoginDinas'));
-                modalInstance.show();
-            } catch(e) { alert("Tunggu halaman memuat sempurna."); }
+            try { let m = new bootstrap.Modal(document.getElementById('modalLoginDinas')); m.show(); } catch(e) { alert("Tunggu halaman memuat."); }
         }
 
-        // Hitung Umur Otomatis
         document.getElementById('tanggalLahir').addEventListener('change', function() {
             if(!this.value) return;
             const dob = new Date(this.value); const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
-            const m = today.getMonth() - dob.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
+            if (today.getMonth() - dob.getMonth() < 0 || (today.getMonth() - dob.getMonth() === 0 && today.getDate() < dob.getDate())) { age--; }
             document.getElementById('umur').value = age > 0 ? age : 0;
         });
 
@@ -224,7 +266,6 @@
             document.getElementById('schoolInfo').innerText = ''; document.getElementById('btnLogout').classList.add('d-none');
         }
 
-        // Pencarian Realtime
         document.getElementById('searchTable').addEventListener('keyup', function() {
             let f = this.value.toLowerCase();
             document.querySelectorAll('#tableBody tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(f) ? '' : 'none');
@@ -234,7 +275,7 @@
             document.querySelectorAll('#tableBodyDinas tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(f) ? '' : 'none');
         });
 
-        // --- LOGIN OPERATOR SEKOLAH ---
+        // --- LOGIN SEKOLAH ---
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (loginStep === 1) {
@@ -262,27 +303,20 @@
         // --- LOGIN DINAS ---
         document.getElementById('formLoginDinas').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btnSubmitDinas');
-            btn.innerText = "Memverifikasi..."; btn.disabled = true;
+            const btn = document.getElementById('btnSubmitDinas'); btn.innerText = "Memverifikasi..."; btn.disabled = true;
             try {
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "login_dinas", username: document.getElementById('dinasUser').value, password: document.getElementById('dinasPass').value })
-                });
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "login_dinas", username: document.getElementById('dinasUser').value, password: document.getElementById('dinasPass').value }) });
                 const result = await res.json();
                 if(result.status === "success") {
                     sessionInfo.dinasUser = result.data.username; sessionInfo.role = result.data.role;
                     document.getElementById('schoolInfo').innerText = `Dinas (${sessionInfo.dinasUser} - ${sessionInfo.role})`;
-                    document.getElementById('btnLogout').classList.remove('d-none');
-                    document.getElementById('btnCloseModalDinas').click();
+                    document.getElementById('btnLogout').classList.remove('d-none'); document.getElementById('btnCloseModalDinas').click();
                     
                     if(sessionInfo.role === "Superadmin") document.getElementById('panelSuperadmin').classList.remove('d-none');
                     else document.getElementById('panelSuperadmin').classList.add('d-none');
 
-                    document.getElementById('appLogin').style.display = 'none';
-                    document.getElementById('appDashboard').style.display = 'none';
-                    document.getElementById('appDinas').style.display = 'block';
-                    fetchDinasMaster();
+                    document.getElementById('appLogin').style.display = 'none'; document.getElementById('appDashboard').style.display = 'none';
+                    document.getElementById('appDinas').style.display = 'block'; fetchDinasMaster();
                 } else { alert(result.message); }
             } catch(err) { alert("Gagal verifikasi masuk."); }
             btn.innerText = "Masuk Dashboard Dinas"; btn.disabled = false;
@@ -300,14 +334,21 @@
                         let size = item['Ukuran Baju']; if(size === 'S') s++; else if(size === 'M') m++; else if(size === 'L') l++; else if(size === 'XL') xl++;
                         let doc = item['File Kades'] ? `<a href="${item['File Kades']}" target="_blank" class="badge bg-primary text-decoration-none">Buka Surat</a>` : '<span class="text-muted">Tidak ada</span>';
                         let st = item['Status Verifikasi'] === 'Disetujui' ? `<span class="badge bg-success">Disetujui</span>` : (item['Status Verifikasi'] === 'Ditolak' ? `<span class="badge bg-danger">Ditolak</span>` : `<span class="badge bg-warning text-dark">Proses</span>`);
-                        tbody.innerHTML += `<tr><td><strong>${item['Nama Siswa']}</strong><br><small class="text-muted">NISN: ${item['NISN']}<br>NIK: ${item['NIK']}</small></td><td>${item['Tempat Lahir']}, ${item['Tanggal Lahir']}<br><span class="text-danger small fw-bold">${item['Penghasilan']}</span></td><td class="text-center">${size}<br>${doc}</td><td class="text-center">${st}</td><td><button class="btn btn-sm btn-outline-warning" onclick="siapkanEdit('${item['ID_Siswa']}')">✏️</button></td></tr>`;
+                        
+                        tbody.innerHTML += `<tr>
+                            <td><strong>${item['Nama Siswa']}</strong><br><small class="text-muted">NISN: ${item['NISN']} | Kelas: ${item['Kelas']}<br>NIK: ${item['NIK']}</small></td>
+                            <td>${item['Tempat Lahir']}, ${item['Tanggal Lahir']}<br><span class="text-danger small fw-bold">${item['Penghasilan']}</span></td>
+                            <td class="text-center">${size}<br>${doc}</td>
+                            <td class="text-center">${st}</td>
+                            <td><button class="btn btn-sm btn-outline-warning" onclick="siapkanEdit('${item['ID_Siswa']}')">✏️</button></td>
+                        </tr>`;
                     });
                 } else { tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Belum ada data.</td></tr>"; }
                 document.getElementById('countS').innerText = s; document.getElementById('countM').innerText = m; document.getElementById('countL').innerText = l; document.getElementById('countXL').innerText = xl;
             } catch(e) { tbody.innerHTML = "<tr><td colspan='5' class='text-center text-danger'>Gagal memuat.</td></tr>"; }
         }
 
-        // --- SIMPAN DATA SEKOLAH ---
+        // --- SIMPAN DATA ---
         document.getElementById('formSiswa').addEventListener('submit', async (e) => {
             e.preventDefault(); const btn = document.getElementById('btnSimpan'); btn.innerText = "Menyimpan..."; btn.disabled = true;
             const fileInput = document.getElementById('fileKades'); const file = fileInput.files[0]; let base64File = null;
@@ -318,7 +359,8 @@
             const payload = {
                 action: "save", data: {
                     idSiswa: document.getElementById('idSiswa').value, npsn: sessionInfo.npsn, waOperator: sessionInfo.waOperator,
-                    namaSiswa: document.getElementById('namaSiswa').value, nisn: document.getElementById('nisn').value, nik: document.getElementById('nik').value, noKk: document.getElementById('noKk').value,
+                    namaSiswa: document.getElementById('namaSiswa').value, nisn: document.getElementById('nisn').value, kelas: document.getElementById('kelas').value,
+                    nik: document.getElementById('nik').value, noKk: document.getElementById('noKk').value,
                     tempatLahir: document.getElementById('tempatLahir').value, tanggalLahir: document.getElementById('tanggalLahir').value, jk: document.getElementById('jk').value, umur: document.getElementById('umur').value,
                     namaAyah: document.getElementById('namaAyah').value, namaIbu: document.getElementById('namaIbu').value, penghasilan: document.getElementById('penghasilan').value, ukuranBaju: document.getElementById('ukuranBaju').value,
                     fileUrlLama: document.getElementById('fileUrlLama').value, statusVerifikasi: document.getElementById('statusVerifikasi').value, fileData: base64File, fileName: file ? file.name : null, mimeType: file ? file.type : null
@@ -333,7 +375,8 @@
 
         function siapkanEdit(id) {
             const dt = currentDataSiswa.find(x => x['ID_Siswa'] === id); if(!dt) return;
-            document.getElementById('idSiswa').value = dt['ID_Siswa']; document.getElementById('namaSiswa').value = dt['Nama Siswa']; document.getElementById('nisn').value = dt['NISN'];
+            document.getElementById('idSiswa').value = dt['ID_Siswa']; document.getElementById('namaSiswa').value = dt['Nama Siswa']; 
+            document.getElementById('nisn').value = dt['NISN']; document.getElementById('kelas').value = dt['Kelas'];
             document.getElementById('nik').value = dt['NIK']; document.getElementById('noKk').value = dt['No KK']; document.getElementById('tempatLahir').value = dt['Tempat Lahir'];
             if(dt['Tanggal Lahir'].includes('/')) { let p = new Date(dt['Tanggal Lahir']); document.getElementById('tanggalLahir').value = `${p.getFullYear()}-${String(p.getMonth()+1).padStart(2,'0')}-${String(p.getDate()).padStart(2,'0')}`; } else { document.getElementById('tanggalLahir').value = dt['Tanggal Lahir'].split('T')[0]; }
             document.getElementById('jk').value = dt['Jenis Kelamin']; document.getElementById('umur').value = dt['Umur']; document.getElementById('namaAyah').value = dt['Nama Ayah']; document.getElementById('namaIbu').value = dt['Nama Ibu Kandung'];
@@ -351,10 +394,7 @@
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "dinas_data" }) });
                 rawDinasData = await res.json();
-                if (rawDinasData.status === "success") {
-                    document.getElementById('filterJenjang').value = "Semua";
-                    filterDinasDashboard(); 
-                }
+                if (rawDinasData.status === "success") { document.getElementById('filterJenjang').value = "Semua"; filterDinasDashboard(); }
             } catch(e) { alert("Koneksi rekapitulasi dinas gagal."); }
         }
 
@@ -388,16 +428,10 @@
             }
 
             if(barChartInst) barChartInst.destroy();
-            barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), {
-                type: 'bar', data: { labels: labelsKec, datasets: [{ label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }] },
-                options: { responsive: true, animation: { duration: 600 }, scales: { x: { stacked: true }, y: { stacked: true } } }
-            });
+            barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), { type: 'bar', data: { labels: labelsKec, datasets: [{ label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }] }, options: { responsive: true, animation: { duration: 600 }, scales: { x: { stacked: true }, y: { stacked: true } } } });
 
             if(pieChartInst) pieChartInst.destroy();
-            pieChartInst = new Chart(document.getElementById('pieChart').getContext('2d'), {
-                type: 'doughnut', data: { labels: Object.keys(bajuCounts), datasets: [{ data: Object.values(bajuCounts), backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545'] }] },
-                options: { responsive: true, animation: { duration: 600 }, cutout: '65%' }
-            });
+            pieChartInst = new Chart(document.getElementById('pieChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(bajuCounts), datasets: [{ data: Object.values(bajuCounts), backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545'] }] }, options: { responsive: true, animation: { duration: 600 }, cutout: '65%' } });
 
             renderTabelDinas(filteredSiswa);
         }
@@ -410,12 +444,12 @@
                     let st = item.status === 'Disetujui' ? `<span class="badge bg-success">Disetujui</span>` : (item.status === 'Ditolak' ? `<span class="badge bg-danger">Ditolak</span>` : `<span class="badge bg-warning text-dark">Proses</span>`);
                     tbody.innerHTML += `<tr>
                         <td><strong>${item.sekolah}</strong><br><small class="text-muted">${item.kecamatan} (${item.jenjang})</small></td>
-                        <td><strong>${item.nama}</strong><br><small class="text-muted">NISN: ${item.nisn} | NIK: ${item.nik}</small></td>
+                        <td><strong>${item.nama}</strong><br><small class="text-muted">NISN: ${item.nisn} | Kelas: ${item.kelas}</small></td>
                         <td class="text-danger fw-bold"><small>${item.penghasilan}</small></td>
                         <td class="text-center">${doc}</td><td class="text-center">${st}</td>
                         <td class="text-center">
-                            <button class="btn btn-xs btn-success py-0 px-1" onclick="verifikasiSiswa('${item.id}', 'Disetujui')">✔️</button>
-                            <button class="btn btn-xs btn-danger py-0 px-1" onclick="verifikasiSiswa('${item.id}', 'Ditolak')">❌</button>
+                            <button class="btn btn-xs btn-success py-0 px-1 font-monospace" onclick="verifikasiSiswa('${item.id}', 'Disetujui')">✔️</button>
+                            <button class="btn btn-xs btn-danger py-0 px-1 font-monospace" onclick="verifikasiSiswa('${item.id}', 'Ditolak')">❌</button>
                         </td></tr>`;
                 });
             } else { tbody.innerHTML = "<tr><td colspan='6' class='text-center'>Tidak ada data.</td></tr>"; }
@@ -429,140 +463,219 @@
             } catch(e) { alert("Gagal memproses verifikasi."); }
         }
 
-        // --- PENGATURAN PASSWORD ---
         document.getElementById('formGantiPassword').addEventListener('submit', async (e) => {
             e.preventDefault(); const p = document.getElementById('passBaru').value;
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "change_password", username: sessionInfo.dinasUser, newPassword: p }) });
-                const r = await res.json(); alert(r.message); if(r.status === "success") document.getElementById('formGantiPassword').reset();
-            } catch(e) { alert("Koneksi gagal."); }
+            try { const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "change_password", username: sessionInfo.dinasUser, newPassword: p }) }); const r = await res.json(); alert(r.message); if(r.status === "success") document.getElementById('formGantiPassword').reset(); } catch(e) { alert("Koneksi gagal."); }
         });
-
-        // --- PANEL SUPERADMIN ---
         document.getElementById('formTambahAdmin').addEventListener('submit', async (e) => {
             e.preventDefault();
-            try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "add_admin", newUsername: document.getElementById('newAdminUser').value, newPassword: document.getElementById('newAdminPass').value }) });
-                const r = await res.json(); alert(r.message); if(r.status === "success") document.getElementById('formTambahAdmin').reset();
-            } catch(e) { alert("Gagal meregistrasi."); }
+            try { const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "add_admin", newUsername: document.getElementById('newAdminUser').value, newPassword: document.getElementById('newAdminPass').value }) }); const r = await res.json(); alert(r.message); if(r.status === "success") document.getElementById('formTambahAdmin').reset(); } catch(e) { alert("Gagal meregistrasi."); }
         });
 
         // =========================================================
-        // [PERBAIKAN FITUR EKSPOR DATA SINKRON SESUAI FORM]
+        // [MODIFIKASI] EKSPOR DATA & FILTER BERTINGKAT
         // =========================================================
+        
+        function bukaModalPDF() {
+            if(!rawDinasData) { alert("Data belum termuat, harap tunggu..."); return; }
+            document.getElementById('pdfKategori').value = "Semua"; 
+            document.getElementById('wrapPdfKecamatan').classList.add('d-none');
+            document.getElementById('wrapPdfSub').classList.add('d-none');
+            try { let m = new bootstrap.Modal(document.getElementById('modalExportPDF')); m.show(); } catch(e) {}
+        }
+
+        // Logic memunculkan daftar dropdown Kecamatan / Sekolah
+        function aturOpsiPDF() {
+            const kat = document.getElementById('pdfKategori').value;
+            const wrapKec = document.getElementById('wrapPdfKecamatan');
+            const selectKec = document.getElementById('pdfKecamatan');
+            const wrapSub = document.getElementById('wrapPdfSub'); 
+            const sub = document.getElementById('pdfSubKategori'); 
+            const lbl = document.getElementById('lblPdfSub');
+            
+            sub.innerHTML = "";
+            selectKec.innerHTML = "";
+
+            if (kat === "Kecamatan") {
+                wrapKec.classList.add('d-none');
+                wrapSub.classList.remove('d-none');
+                lbl.innerText = "Pilih Kecamatan:";
+                let unik = new Set();
+                if(rawDinasData && rawDinasData.data.listSiswa) {
+                    rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unik.add(s.kecamatan); });
+                }
+                Array.from(unik).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
+
+            } else if (kat === "Sekolah") {
+                // Munculkan opsi Kecamatan lebih dulu
+                wrapKec.classList.remove('d-none');
+                wrapSub.classList.remove('d-none');
+                lbl.innerText = "Pilih Sekolah:";
+                
+                let unikKec = new Set();
+                if(rawDinasData && rawDinasData.data.listSiswa) {
+                    rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unikKec.add(s.kecamatan); });
+                }
+                Array.from(unikKec).sort().forEach(val => { selectKec.innerHTML += `<option value="${val}">${val}</option>`; });
+                
+                updateOpsiSekolah(); // Panggil fungsi filter sekolah
+
+            } else {
+                wrapKec.classList.add('d-none');
+                wrapSub.classList.add('d-none');
+            }
+        }
+
+        // Logic filter daftar sekolah berdasarkan Kecamatan terpilih
+        function updateOpsiSekolah() {
+            const selectedKec = document.getElementById('pdfKecamatan').value;
+            const sub = document.getElementById('pdfSubKategori');
+            sub.innerHTML = "";
+
+            let unikSekolah = new Set();
+            if(rawDinasData && rawDinasData.data.listSiswa) {
+                rawDinasData.data.listSiswa.forEach(s => {
+                    if(s.kecamatan === selectedKec && s.sekolah) unikSekolah.add(s.sekolah);
+                });
+            }
+
+            if(unikSekolah.size > 0) {
+                Array.from(unikSekolah).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
+            } else {
+                sub.innerHTML = `<option value="">-- Tidak ada sekolah di kecamatan ini --</option>`;
+            }
+        }
+
         function getFilteredArrayData() {
             if(!rawDinasData) return [];
             const jenjangDipilih = document.getElementById('filterJenjang').value;
             let list = rawDinasData.data.listSiswa.filter(s => jenjangDipilih === "Semua" || s.jenjang === jenjangDipilih);
             
-            // Pertahankan filter pencarian jika operator sedang mengetik pencarian
             let filterText = document.getElementById('searchDinas').value.toLowerCase();
-            if (filterText) {
-                list = list.filter(s => s.nama.toLowerCase().includes(filterText) || s.sekolah.toLowerCase().includes(filterText) || s.nisn.includes(filterText));
-            }
+            if (filterText) { list = list.filter(s => s.nama.toLowerCase().includes(filterText) || s.sekolah.toLowerCase().includes(filterText) || s.nisn.includes(filterText)); }
             return list;
         }
 
-        // [BARU] EKSPOR EXCEL: STRICT HANYA KOLOM INPUTAN OPERATOR SEKOLAH
         function exportToExcel() {
             let dataSiswa = getFilteredArrayData();
             if(dataSiswa.length === 0) { alert("Data kosong / tidak ditemukan!"); return; }
             
             let exportData = dataSiswa.map((s, idx) => ({
-                "No": idx + 1,
-                "Asal Sekolah": s.sekolah,
-                "Kecamatan": s.kecamatan,
-                "Jenjang": s.jenjang,
-                "Nama Lengkap": s.nama,
-                "NISN": s.nisn,
-                "NIK Siswa": s.nik,
-                "No. KK": s.noKk,
-                "Tempat Lahir": s.tempatLahir,
-                "Tanggal Lahir": s.tanggalLahir,
-                "Jenis Kelamin": s.jk,
-                "Umur": s.umur,
-                "Nama Ayah": s.namaAyah,
-                "Nama Ibu Kandung": s.namaIbu,
-                "Penghasilan Orang Tua": s.penghasilan,
-                "Ukuran Baju": s.baju,
-                "Tautan Berkas Kades": s.file,
-                "Status Verifikasi": s.status
+                "No": idx + 1, "Asal Sekolah": s.sekolah, "Kecamatan": s.kecamatan, "Jenjang": s.jenjang,
+                "Nama Lengkap": s.nama, "NISN": s.nisn, "Kelas": s.kelas, "NIK Siswa": s.nik, "No. KK": s.noKk,
+                "Tempat Lahir": s.tempatLahir, "Tanggal Lahir": s.tanggalLahir, "Jenis Kelamin": s.jk, "Umur": s.umur,
+                "Nama Ayah": s.namaAyah, "Nama Ibu Kandung": s.namaIbu, "Penghasilan Orang Tua": s.penghasilan,
+                "Ukuran Baju": s.baju, "Tautan Berkas Kades": s.file, "Status Verifikasi": s.status
             }));
 
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Data_Siswa_Imputan");
-            
-            // Auto layout lebar kolom
-            ws['!cols'] = [{wch:5},{wch:25},{wch:18},{wch:10},{wch:25},{wch:15},{wch:18},{wch:18},{wch:15},{wch:15},{wch:15},{wch:8},{wch:20},{wch:20},{wch:22},{wch:12},{wch:30},{wch:18}];
-            XLSX.writeFile(wb, `Data_Siswa_Miskin_Inputan_${document.getElementById('filterJenjang').value}.xlsx`);
+            const ws = XLSX.utils.json_to_sheet(exportData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data_Siswa");
+            ws['!cols'] = [{wch:5},{wch:25},{wch:18},{wch:10},{wch:25},{wch:15},{wch:10},{wch:18},{wch:18},{wch:15},{wch:15},{wch:15},{wch:8},{wch:20},{wch:20},{wch:22},{wch:12},{wch:30},{wch:18}];
+            XLSX.writeFile(wb, `Data_Siswa_Miskin_Inputan.xlsx`);
         }
 
-        // [BARU] EKSPOR PDF: TAMPILKAN KOLOM UKURAN BAJU & KOTAK REKAPITULASI BAJU DI BAWAH LAPORAN
-        function exportToPDF() {
-            let dataSiswa = getFilteredArrayData();
-            if(dataSiswa.length === 0) { alert("Data kosong / tidak ditemukan!"); return; }
+        // [LOGIKA BARU PDF] CETAK BERDASARKAN SEKOLAH (Rinci) VS LAINNYA (Agregat Total Baju)
+        function eksekusiCetakPDF() {
+            if(!rawDinasData) { alert("Data kosong!"); return; }
             
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
+            const kat = document.getElementById('pdfKategori').value;
+            const sub = document.getElementById('pdfSubKategori').value;
             
-            // Judul Dokumen
-            doc.setFont("Helvetica", "bold"); doc.setFontSize(13);
-            doc.text("REKAPITULASI NASIONAL DATA SISWA MISKIN", 14, 15);
-            doc.setFontSize(10); doc.setFont("Helvetica", "normal");
-            doc.text(`Kriteria Tingkat Filter Jenjang: ${document.getElementById('filterJenjang').value}`, 14, 21);
-            doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
-            
-            // Hitung Rekapitulasi Ukuran Baju secara dinamis untuk ditanam di bawah halaman
-            let sCount = 0, mCount = 0, lCount = 0, xlCount = 0;
-            
-            let bodyData = dataSiswa.map(s => {
-                if(s.baju === 'S') sCount++;
-                else if(s.baju === 'M') mCount++;
-                else if(s.baju === 'L') lCount++;
-                else if(s.baju === 'XL') xlCount++;
+            let dataSiswa = rawDinasData.data.listSiswa;
+            let labelFilter = "";
 
-                return [
-                    s.sekolah,
-                    `${s.nama}\n(NISN: ${s.nisn})`,
-                    s.penghasilan,
-                    s.baju, // [BARU] Masuk Kolom Ukuran Baju
-                    s.status
-                ];
-            });
-            
-            // Gambar Tabel Utama jsPDF Autotable
-            doc.autoTable({
-                head: [["Asal Sekolah", "Nama Siswa", "Ekonomi Orang Tua", "Ukuran Baju", "Status"]],
-                body: bodyData,
-                startY: 31,
-                theme: 'striped',
-                headStyles: { fillColor: [41, 128, 185] },
-                styles: { fontSize: 8.5 }
-            });
-            
-            // [BARU] KOTAK REKAPAN DI BAWAH LAPORAN UTAMA
-            let finalY = doc.lastAutoTable.finalY + 10;
-            
-            // Cegah Overlap halaman (jika mepet ujung bawah kertas, lempar ke halaman baru)
-            if (finalY > 240) {
-                doc.addPage();
-                finalY = 20;
+            if (kat === "SD" || kat === "SMP" || kat === "SMA") {
+                dataSiswa = dataSiswa.filter(s => s.jenjang === kat); labelFilter = `Tingkat Jenjang: ${kat}`;
+            } else if (kat === "Kecamatan") {
+                dataSiswa = dataSiswa.filter(s => s.kecamatan === sub); labelFilter = `Area Kecamatan: ${sub}`;
+            } else if (kat === "Sekolah") {
+                dataSiswa = dataSiswa.filter(s => s.sekolah === sub); labelFilter = `Nama Sekolah: ${sub}`;
+            } else {
+                labelFilter = "Semua Jenjang / Semua Daerah";
             }
 
-            doc.setFont("Helvetica", "bold"); doc.setFontSize(10);
-            doc.text("📋 REKAPITULASI LOGISTIK UKURAN BAJU TERPROSES:", 14, finalY);
+            if(dataSiswa.length === 0) { alert("Tidak ada data untuk kategori yang dipilih!"); return; }
             
-            doc.autoTable({
-                head: [["Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Penerima"]],
-                body: [[sCount, mCount, lCount, xlCount, dataSiswa.length]],
-                startY: finalY + 4,
-                theme: 'grid',
-                headStyles: { fillColor: [52, 73, 94] }, // Warna abu gelap maskulin
-                styles: { fontSize: 9, halign: 'center', fontStyle: 'bold' }
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+            
+            doc.setFont("Helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI NASIONAL DATA SISWA MISKIN", 14, 15);
+            doc.setFontSize(10); doc.setFont("Helvetica", "normal");
+            doc.text(`Kriteria Filter Laporan: ${labelFilter}`, 14, 21);
+            doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
+            
+            // Hitungan Rekapitulasi Global 3 Baris 
+            let rekap = {
+                total: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
+                ditolak: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
+                disetujui: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }
+            };
+            
+            // Hitungan Rekapitulasi per Sekolah (Khusus Mode Non-Sekolah)
+            let schoolAgg = {};
+            let bodyDataReal = [];
+
+            dataSiswa.forEach(s => {
+                // Akumulasi Global
+                if(s.baju === 'S') rekap.total.S++; else if(s.baju === 'M') rekap.total.M++; else if(s.baju === 'L') rekap.total.L++; else if(s.baju === 'XL') rekap.total.XL++;
+                rekap.total.Total++;
+                
+                if (s.status === 'Ditolak') {
+                    if(s.baju === 'S') rekap.ditolak.S++; else if(s.baju === 'M') rekap.ditolak.M++; else if(s.baju === 'L') rekap.ditolak.L++; else if(s.baju === 'XL') rekap.ditolak.XL++;
+                    rekap.ditolak.Total++;
+                } else if (s.status === 'Disetujui') {
+                    if(s.baju === 'S') rekap.disetujui.S++; else if(s.baju === 'M') rekap.disetujui.M++; else if(s.baju === 'L') rekap.disetujui.L++; else if(s.baju === 'XL') rekap.disetujui.XL++;
+                    rekap.disetujui.Total++;
+                }
+
+                // Akumulasi per Sekolah 
+                if (!schoolAgg[s.sekolah]) schoolAgg[s.sekolah] = { S: 0, M: 0, L: 0, XL: 0, Total: 0 };
+                if(s.baju === 'S') schoolAgg[s.sekolah].S++; else if(s.baju === 'M') schoolAgg[s.sekolah].M++; else if(s.baju === 'L') schoolAgg[s.sekolah].L++; else if(s.baju === 'XL') schoolAgg[s.sekolah].XL++;
+                schoolAgg[s.sekolah].Total++;
+
+                // Data Rinci
+                bodyDataReal.push([ s.sekolah, `${s.nama}\n(Kelas: ${s.kelas})`, s.penghasilan, s.baju, s.status ]);
             });
             
-            doc.save(`Laporan_Dinas_Bantuan_Baju_${document.getElementById('filterJenjang').value}.pdf`);
+            // LOGIKA TABEL PDF
+            if (kat === "Sekolah") {
+                // Tampilkan Tabel Rinci dengan Nama Siswa (Data Real)
+                doc.autoTable({
+                    head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]],
+                    body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 }
+                });
+            } else {
+                // Tampilkan Tabel Rekap Nama Sekolah & Total Baju
+                let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => {
+                    let agg = schoolAgg[sch];
+                    return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total];
+                });
+                
+                doc.autoTable({
+                    head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]],
+                    body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, 
+                    styles: { fontSize: 8.5, halign: 'center' }, columnStyles: { 0: { halign: 'left' } }
+                });
+            }
+            
+            // CETAK TABEL REKAPITULASI BAWAH (3 BARIS)
+            let finalY = doc.lastAutoTable.finalY + 10;
+            if (finalY > 230) { doc.addPage(); finalY = 20; }
+
+            doc.setFont("Helvetica", "bold"); doc.setFontSize(10); 
+            doc.text("REKAPITULASI LOGISTIK UKURAN BAJU TERPROSES:", 14, finalY);
+            
+            doc.autoTable({
+                head: [["Keterangan Validasi", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Penerima"]],
+                body: [
+                    ["Total Pengajuan", rekap.total.S, rekap.total.M, rekap.total.L, rekap.total.XL, rekap.total.Total],
+                    ["Jumlah Ditolak", rekap.ditolak.S, rekap.ditolak.M, rekap.ditolak.L, rekap.ditolak.XL, rekap.ditolak.Total],
+                    ["Jumlah Disetujui (Final)", rekap.disetujui.S, rekap.disetujui.M, rekap.disetujui.L, rekap.disetujui.XL, rekap.disetujui.Total]
+                ],
+                startY: finalY + 4, theme: 'grid', headStyles: { fillColor: [52, 73, 94] }, 
+                styles: { fontSize: 9, halign: 'center' }, columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } }
+            });
+            
+            doc.save(`Laporan_Bantuan_Baju_${kat}.pdf`);
+            document.getElementById('btnCloseModalPDF').click();
         }
     </script>
 </body>
