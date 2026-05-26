@@ -237,7 +237,7 @@
         // =====================================
         // MASUKKAN URL WEB APP ANDA DI SINI
         // =====================================
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxWxPaOC2ovANL-OvH-gfWT-QECkfIaOEw2mVALdxXQd34zMtYrTs1Oayd54gAugxz_xw/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbySMkPTcSxDcBzA1H09YyDcSaoHDOGwvxn0DzeDiqTjHzgEq-2wrsQN2cXC0rH_N3Byhw/exec";
         
         let sessionInfo = { npsn: null, namaSekolah: null, waOperator: null, dinasUser: null, role: null };
         let currentDataSiswa = [];
@@ -322,7 +322,7 @@
             btn.innerText = "Masuk Dashboard Dinas"; btn.disabled = false;
         });
 
-        // --- LOAD DATA SEKOLAH ---
+        // --- LOAD DATA SEKOLAH (+ TOMBOL HAPUS) ---
         async function loadData() {
             const tbody = document.getElementById('tableBody'); tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Memuat...</td></tr>";
             try {
@@ -340,7 +340,12 @@
                             <td>${item['Tempat Lahir']}, ${item['Tanggal Lahir']}<br><span class="text-danger small fw-bold">${item['Penghasilan']}</span></td>
                             <td class="text-center">${size}<br>${doc}</td>
                             <td class="text-center">${st}</td>
-                            <td><button class="btn btn-sm btn-outline-warning" onclick="siapkanEdit('${item['ID_Siswa']}')">✏️</button></td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <button class="btn btn-sm btn-outline-warning" onclick="siapkanEdit('${item['ID_Siswa']}')" title="Edit Data">✏️</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="hapusDataSiswa(event, '${item['ID_Siswa']}')" title="Hapus Data">🗑️</button>
+                                </div>
+                            </td>
                         </tr>`;
                     });
                 } else { tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Belum ada data.</td></tr>"; }
@@ -386,6 +391,37 @@
         }
 
         function resetForm() { document.getElementById('formSiswa').reset(); document.getElementById('idSiswa').value=""; document.getElementById('fileUrlLama').value=""; document.getElementById('statusVerifikasi').value=""; document.getElementById('statusFileLama').classList.add('d-none'); document.getElementById('formTitle').innerText="Form Input Siswa"; document.getElementById('btnSimpan').innerText="Simpan Data"; document.getElementById('btnBatalEdit').classList.add('d-none'); }
+
+        // --- [BARU] FUNGSI HAPUS DATA ---
+        async function hapusDataSiswa(event, id) {
+            if(!confirm("Apakah Anda yakin ingin menghapus data siswa ini secara permanen?")) return;
+            
+            const btn = event.currentTarget;
+            let originalText = btn.innerHTML;
+            btn.innerHTML = "⏳";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "delete", idSiswa: id })
+                });
+                const result = await res.json();
+                
+                if (result.status === "success") {
+                    alert(result.message);
+                    loadData(); 
+                } else {
+                    alert("Error: " + result.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert("Terjadi kesalahan koneksi.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
 
         // --- DASHBOARD DINAS ---
         let barChartInst = null; let pieChartInst = null;
@@ -473,7 +509,7 @@
         });
 
         // =========================================================
-        // [MODIFIKASI] EKSPOR DATA & FILTER BERTINGKAT
+        // EKSPOR DATA MODAL (EXCEL & PDF)
         // =========================================================
         
         function bukaModalPDF() {
@@ -484,7 +520,6 @@
             try { let m = new bootstrap.Modal(document.getElementById('modalExportPDF')); m.show(); } catch(e) {}
         }
 
-        // Logic memunculkan daftar dropdown Kecamatan / Sekolah
         function aturOpsiPDF() {
             const kat = document.getElementById('pdfKategori').value;
             const wrapKec = document.getElementById('wrapPdfKecamatan');
@@ -507,7 +542,6 @@
                 Array.from(unik).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
 
             } else if (kat === "Sekolah") {
-                // Munculkan opsi Kecamatan lebih dulu
                 wrapKec.classList.remove('d-none');
                 wrapSub.classList.remove('d-none');
                 lbl.innerText = "Pilih Sekolah:";
@@ -518,7 +552,7 @@
                 }
                 Array.from(unikKec).sort().forEach(val => { selectKec.innerHTML += `<option value="${val}">${val}</option>`; });
                 
-                updateOpsiSekolah(); // Panggil fungsi filter sekolah
+                updateOpsiSekolah(); 
 
             } else {
                 wrapKec.classList.add('d-none');
@@ -526,7 +560,6 @@
             }
         }
 
-        // Logic filter daftar sekolah berdasarkan Kecamatan terpilih
         function updateOpsiSekolah() {
             const selectedKec = document.getElementById('pdfKecamatan').value;
             const sub = document.getElementById('pdfSubKategori');
@@ -550,7 +583,6 @@
             if(!rawDinasData) return [];
             const jenjangDipilih = document.getElementById('filterJenjang').value;
             let list = rawDinasData.data.listSiswa.filter(s => jenjangDipilih === "Semua" || s.jenjang === jenjangDipilih);
-            
             let filterText = document.getElementById('searchDinas').value.toLowerCase();
             if (filterText) { list = list.filter(s => s.nama.toLowerCase().includes(filterText) || s.sekolah.toLowerCase().includes(filterText) || s.nisn.includes(filterText)); }
             return list;
@@ -573,7 +605,6 @@
             XLSX.writeFile(wb, `Data_Siswa_Miskin_Inputan.xlsx`);
         }
 
-        // [LOGIKA BARU PDF] CETAK BERDASARKAN SEKOLAH (Rinci) VS LAINNYA (Agregat Total Baju)
         function eksekusiCetakPDF() {
             if(!rawDinasData) { alert("Data kosong!"); return; }
             
@@ -602,19 +633,16 @@
             doc.text(`Kriteria Filter Laporan: ${labelFilter}`, 14, 21);
             doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
             
-            // Hitungan Rekapitulasi Global 3 Baris 
             let rekap = {
                 total: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
                 ditolak: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
                 disetujui: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }
             };
             
-            // Hitungan Rekapitulasi per Sekolah (Khusus Mode Non-Sekolah)
             let schoolAgg = {};
             let bodyDataReal = [];
 
             dataSiswa.forEach(s => {
-                // Akumulasi Global
                 if(s.baju === 'S') rekap.total.S++; else if(s.baju === 'M') rekap.total.M++; else if(s.baju === 'L') rekap.total.L++; else if(s.baju === 'XL') rekap.total.XL++;
                 rekap.total.Total++;
                 
@@ -626,29 +654,23 @@
                     rekap.disetujui.Total++;
                 }
 
-                // Akumulasi per Sekolah 
                 if (!schoolAgg[s.sekolah]) schoolAgg[s.sekolah] = { S: 0, M: 0, L: 0, XL: 0, Total: 0 };
                 if(s.baju === 'S') schoolAgg[s.sekolah].S++; else if(s.baju === 'M') schoolAgg[s.sekolah].M++; else if(s.baju === 'L') schoolAgg[s.sekolah].L++; else if(s.baju === 'XL') schoolAgg[s.sekolah].XL++;
                 schoolAgg[s.sekolah].Total++;
 
-                // Data Rinci
                 bodyDataReal.push([ s.sekolah, `${s.nama}\n(Kelas: ${s.kelas})`, s.penghasilan, s.baju, s.status ]);
             });
             
-            // LOGIKA TABEL PDF
             if (kat === "Sekolah") {
-                // Tampilkan Tabel Rinci dengan Nama Siswa (Data Real)
                 doc.autoTable({
                     head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]],
                     body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 }
                 });
             } else {
-                // Tampilkan Tabel Rekap Nama Sekolah & Total Baju
                 let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => {
                     let agg = schoolAgg[sch];
                     return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total];
                 });
-                
                 doc.autoTable({
                     head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]],
                     body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, 
@@ -656,7 +678,6 @@
                 });
             }
             
-            // CETAK TABEL REKAPITULASI BAWAH (3 BARIS)
             let finalY = doc.lastAutoTable.finalY + 10;
             if (finalY > 230) { doc.addPage(); finalY = 20; }
 
