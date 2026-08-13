@@ -34,6 +34,7 @@
         </div>
     </nav>
 
+    <!-- Modal Login Dinas -->
     <div class="modal fade" id="modalLoginDinas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
             <div class="modal-content p-3">
@@ -52,6 +53,7 @@
         </div>
     </div>
 
+    <!-- Modal Export PDF -->
     <div class="modal fade" id="modalExportPDF" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
             <div class="modal-content p-3">
@@ -89,6 +91,7 @@
 
     <div class="container">
         
+        <!-- APP LOGIN SEKOLAH -->
         <div class="row justify-content-center" id="appLogin">
             <div class="col-md-5">
                 <div class="card p-4 fade-in">
@@ -108,6 +111,7 @@
             </div>
         </div>
 
+        <!-- APP DASHBOARD SEKOLAH -->
         <div id="appDashboard" class="fade-in">
             <div class="row">
                 <div class="col-lg-4 mb-4">
@@ -162,8 +166,59 @@
             </div>
         </div>
 
+        <!-- APP DASHBOARD DINAS -->
         <div id="appDinas" class="fade-in">
             <h4 class="mb-4 border-bottom pb-2 fw-bold text-secondary">📊 Portal Pemantauan & Verifikasi Dinas</h4>
+            
+            <!-- [BARU] KARTU TOTAL KESELURUHAN -->
+            <div class="row g-3 mb-3 text-center">
+                <div class="col-md-4 col-12">
+                    <div class="card bg-success text-white p-3 shadow-sm border-0">
+                        <small class="fw-bold">Total Data SD</small>
+                        <h3 class="mb-0 mt-1" id="countTotal_SD">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <div class="card bg-warning text-dark p-3 shadow-sm border-0">
+                        <small class="fw-bold">Total Data SMP</small>
+                        <h3 class="mb-0 mt-1" id="countTotal_SMP">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <div class="card bg-secondary text-white p-3 shadow-sm border-0">
+                        <small class="fw-bold">Total Data Keseluruhan</small>
+                        <h3 class="mb-0 mt-1" id="countTotal_All">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KARTU INFO GENDER & JENJANG -->
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-md-3 col-6">
+                    <div class="card bg-info text-white p-3 shadow-sm border-0">
+                        <small class="fw-bold">SD - Laki-laki</small>
+                        <h3 class="mb-0 mt-1" id="countL_SD">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card bg-danger text-white p-3 shadow-sm border-0">
+                        <small class="fw-bold">SD - Perempuan</small>
+                        <h3 class="mb-0 mt-1" id="countP_SD">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card bg-primary text-white p-3 shadow-sm border-0">
+                        <small class="fw-bold">SMP - Laki-laki</small>
+                        <h3 class="mb-0 mt-1" id="countL_SMP">0</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card bg-warning text-dark p-3 shadow-sm border-0" style="background-color: #ffc107 !important;">
+                        <small class="fw-bold">SMP - Perempuan</small>
+                        <h3 class="mb-0 mt-1" id="countP_SMP">0</h3>
+                    </div>
+                </div>
+            </div>
             
             <div class="row">
                 <div class="col-lg-8 mb-4">
@@ -322,7 +377,7 @@
             btn.innerText = "Masuk Dashboard Dinas"; btn.disabled = false;
         });
 
-        // --- LOAD DATA SEKOLAH (+ TOMBOL HAPUS) ---
+        // --- LOAD DATA SEKOLAH ---
         async function loadData() {
             const tbody = document.getElementById('tableBody'); tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Memuat...</td></tr>";
             try {
@@ -392,39 +447,48 @@
 
         function resetForm() { document.getElementById('formSiswa').reset(); document.getElementById('idSiswa').value=""; document.getElementById('fileUrlLama').value=""; document.getElementById('statusVerifikasi').value=""; document.getElementById('statusFileLama').classList.add('d-none'); document.getElementById('formTitle').innerText="Form Input Siswa"; document.getElementById('btnSimpan').innerText="Simpan Data"; document.getElementById('btnBatalEdit').classList.add('d-none'); }
 
-        // --- [BARU] FUNGSI HAPUS DATA ---
         async function hapusDataSiswa(event, id) {
             if(!confirm("Apakah Anda yakin ingin menghapus data siswa ini secara permanen?")) return;
-            
-            const btn = event.currentTarget;
-            let originalText = btn.innerHTML;
-            btn.innerHTML = "⏳";
-            btn.disabled = true;
+            const btn = event.currentTarget; let originalText = btn.innerHTML;
+            btn.innerHTML = "⏳"; btn.disabled = true;
 
             try {
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "delete", idSiswa: id })
-                });
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "delete", idSiswa: id }) });
                 const result = await res.json();
-                
-                if (result.status === "success") {
-                    alert(result.message);
-                    loadData(); 
-                } else {
-                    alert("Error: " + result.message);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                alert("Terjadi kesalahan koneksi.");
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+                if (result.status === "success") { alert(result.message); loadData(); } 
+                else { alert("Error: " + result.message); btn.innerHTML = originalText; btn.disabled = false; }
+            } catch (e) { alert("Terjadi kesalahan koneksi."); btn.innerHTML = originalText; btn.disabled = false; }
         }
 
         // --- DASHBOARD DINAS ---
         let barChartInst = null; let pieChartInst = null;
+
+        // Custom Plugin Chart.js untuk memunculkan Persentase di atas Batang
+        const pluginDrawPercent = {
+            id: 'drawPercentPlugin',
+            afterDatasetsDraw(chart) {
+                const { ctx, data, scales: { x, y } } = chart;
+                ctx.save();
+                ctx.font = 'bold 11px sans-serif';
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
+                
+                for (let i = 0; i < data.labels.length; i++) {
+                    let sudah = data.datasets[0].data[i]; // Jumlah Sekolah Sudah Mengisi
+                    let belum = data.datasets[1].data[i]; // Jumlah Sekolah Belum Mengisi
+                    let total = sudah + belum;
+                    
+                    if (sudah > 0 && total > 0) {
+                        let persen = ((sudah / total) * 100).toFixed(0); // Pembulatan persen
+                        let xPos = x.getPixelForValue(i);
+                        // Tempatkan teks sedikit di atas batang tumpukan (total)
+                        let yPos = y.getPixelForValue(total) - 8; 
+                        ctx.fillText(persen + '%', xPos, yPos);
+                    }
+                }
+                ctx.restore();
+            }
+        };
 
         async function fetchDinasMaster() {
             try {
@@ -444,6 +508,9 @@
             let bajuCounts = { 'S': 0, 'M': 0, 'L': 0, 'XL': 0 };
             let kecMapStats = {};
             
+            // Variabel Hitungan L/P Baru
+            let l_sd = 0, p_sd = 0, l_smp = 0, p_smp = 0;
+            
             masterSekolah.forEach(sch => {
                 if (jenjangDipilih !== "Semua" && sch.jenjang !== jenjangDipilih) return;
                 if (!kecMapStats[sch.kecamatan]) kecMapStats[sch.kecamatan] = { total: 0, sudahNpsn: new Set() };
@@ -453,18 +520,63 @@
             filteredSiswa.forEach(s => {
                 if(bajuCounts[s.baju] !== undefined) bajuCounts[s.baju]++;
                 if(kecMapStats[s.kecamatan]) kecMapStats[s.kecamatan].sudahNpsn.add(s.npsn);
+                
+                // Perhitungan Kartu SD & SMP
+                if (s.jenjang === 'SD') {
+                    if (s.jk === 'Laki-laki') l_sd++;
+                    else if (s.jk === 'Perempuan') p_sd++;
+                } else if (s.jenjang === 'SMP') {
+                    if (s.jk === 'Laki-laki') l_smp++;
+                    else if (s.jk === 'Perempuan') p_smp++;
+                }
             });
 
+            // Update UI Kartu Baru (Total Keseluruhan)
+            document.getElementById('countTotal_SD').innerText = (l_sd + p_sd);
+            document.getElementById('countTotal_SMP').innerText = (l_smp + p_smp);
+            document.getElementById('countTotal_All').innerText = (l_sd + p_sd + l_smp + p_smp);
+
+            // Update UI Kartu Gender
+            document.getElementById('countL_SD').innerText = l_sd;
+            document.getElementById('countP_SD').innerText = p_sd;
+            document.getElementById('countL_SMP').innerText = l_smp;
+            document.getElementById('countP_SMP').innerText = p_smp;
+
+            // Perhitungan Grafik Batang (Angka Asli Sekolah)
             let labelsKec = []; let dataSudah = []; let dataBelum = [];
             for (let kec in kecMapStats) {
                 labelsKec.push(kec);
+                let total = kecMapStats[kec].total;
                 let sudah = kecMapStats[kec].sudahNpsn.size;
-                let belum = kecMapStats[kec].total - sudah;
-                dataSudah.push(sudah); dataBelum.push(belum);
+                let belum = total - sudah;
+
+                dataSudah.push(sudah);
+                dataBelum.push(belum);
             }
 
             if(barChartInst) barChartInst.destroy();
-            barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), { type: 'bar', data: { labels: labelsKec, datasets: [{ label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }] }, options: { responsive: true, animation: { duration: 600 }, scales: { x: { stacked: true }, y: { stacked: true } } } });
+            barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), { 
+                type: 'bar', 
+                data: { 
+                    labels: labelsKec, 
+                    datasets: [
+                        { label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, 
+                        { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }
+                    ] 
+                }, 
+                plugins: [pluginDrawPercent], // Mengaktifkan custom plugin persen di sini
+                options: { 
+                    responsive: true, 
+                    animation: { duration: 600 },
+                    layout: {
+                        padding: { top: 20 } // Beri jarak di atas supaya angka persen tidak terpotong
+                    },
+                    scales: { 
+                        x: { stacked: true }, 
+                        y: { stacked: true } // Skala Y kembali mengikuti jumlah asli (tidak fix 100)
+                    }
+                } 
+            });
 
             if(pieChartInst) pieChartInst.destroy();
             pieChartInst = new Chart(document.getElementById('pieChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(bajuCounts), datasets: [{ data: Object.values(bajuCounts), backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545'] }] }, options: { responsive: true, animation: { duration: 600 }, cutout: '65%' } });
@@ -528,55 +640,28 @@
             const sub = document.getElementById('pdfSubKategori'); 
             const lbl = document.getElementById('lblPdfSub');
             
-            sub.innerHTML = "";
-            selectKec.innerHTML = "";
+            sub.innerHTML = ""; selectKec.innerHTML = "";
 
             if (kat === "Kecamatan") {
-                wrapKec.classList.add('d-none');
-                wrapSub.classList.remove('d-none');
-                lbl.innerText = "Pilih Kecamatan:";
+                wrapKec.classList.add('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Kecamatan:";
                 let unik = new Set();
-                if(rawDinasData && rawDinasData.data.listSiswa) {
-                    rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unik.add(s.kecamatan); });
-                }
+                if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unik.add(s.kecamatan); }); }
                 Array.from(unik).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
-
             } else if (kat === "Sekolah") {
-                wrapKec.classList.remove('d-none');
-                wrapSub.classList.remove('d-none');
-                lbl.innerText = "Pilih Sekolah:";
-                
+                wrapKec.classList.remove('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Sekolah:";
                 let unikKec = new Set();
-                if(rawDinasData && rawDinasData.data.listSiswa) {
-                    rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unikKec.add(s.kecamatan); });
-                }
+                if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unikKec.add(s.kecamatan); }); }
                 Array.from(unikKec).sort().forEach(val => { selectKec.innerHTML += `<option value="${val}">${val}</option>`; });
-                
                 updateOpsiSekolah(); 
-
-            } else {
-                wrapKec.classList.add('d-none');
-                wrapSub.classList.add('d-none');
-            }
+            } else { wrapKec.classList.add('d-none'); wrapSub.classList.add('d-none'); }
         }
 
         function updateOpsiSekolah() {
-            const selectedKec = document.getElementById('pdfKecamatan').value;
-            const sub = document.getElementById('pdfSubKategori');
-            sub.innerHTML = "";
-
+            const selectedKec = document.getElementById('pdfKecamatan').value; const sub = document.getElementById('pdfSubKategori'); sub.innerHTML = "";
             let unikSekolah = new Set();
-            if(rawDinasData && rawDinasData.data.listSiswa) {
-                rawDinasData.data.listSiswa.forEach(s => {
-                    if(s.kecamatan === selectedKec && s.sekolah) unikSekolah.add(s.sekolah);
-                });
-            }
-
-            if(unikSekolah.size > 0) {
-                Array.from(unikSekolah).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
-            } else {
-                sub.innerHTML = `<option value="">-- Tidak ada sekolah di kecamatan ini --</option>`;
-            }
+            if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan === selectedKec && s.sekolah) unikSekolah.add(s.sekolah); }); }
+            if(unikSekolah.size > 0) { Array.from(unikSekolah).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; }); } 
+            else { sub.innerHTML = `<option value="">-- Tidak ada sekolah di kecamatan ini --</option>`; }
         }
 
         function getFilteredArrayData() {
@@ -614,15 +699,10 @@
             let dataSiswa = rawDinasData.data.listSiswa;
             let labelFilter = "";
 
-            if (kat === "SD" || kat === "SMP" || kat === "SMA") {
-                dataSiswa = dataSiswa.filter(s => s.jenjang === kat); labelFilter = `Tingkat Jenjang: ${kat}`;
-            } else if (kat === "Kecamatan") {
-                dataSiswa = dataSiswa.filter(s => s.kecamatan === sub); labelFilter = `Area Kecamatan: ${sub}`;
-            } else if (kat === "Sekolah") {
-                dataSiswa = dataSiswa.filter(s => s.sekolah === sub); labelFilter = `Nama Sekolah: ${sub}`;
-            } else {
-                labelFilter = "Semua Jenjang / Semua Daerah";
-            }
+            if (kat === "SD" || kat === "SMP" || kat === "SMA") { dataSiswa = dataSiswa.filter(s => s.jenjang === kat); labelFilter = `Tingkat Jenjang: ${kat}`; } 
+            else if (kat === "Kecamatan") { dataSiswa = dataSiswa.filter(s => s.kecamatan === sub); labelFilter = `Area Kecamatan: ${sub}`; } 
+            else if (kat === "Sekolah") { dataSiswa = dataSiswa.filter(s => s.sekolah === sub); labelFilter = `Nama Sekolah: ${sub}`; } 
+            else { labelFilter = "Semua Jenjang / Semua Daerah"; }
 
             if(dataSiswa.length === 0) { alert("Tidak ada data untuk kategori yang dipilih!"); return; }
             
@@ -633,14 +713,8 @@
             doc.text(`Kriteria Filter Laporan: ${labelFilter}`, 14, 21);
             doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
             
-            let rekap = {
-                total: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
-                ditolak: { S: 0, M: 0, L: 0, XL: 0, Total: 0 },
-                disetujui: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }
-            };
-            
-            let schoolAgg = {};
-            let bodyDataReal = [];
+            let rekap = { total: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }, ditolak: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }, disetujui: { S: 0, M: 0, L: 0, XL: 0, Total: 0 } };
+            let schoolAgg = {}; let bodyDataReal = [];
 
             dataSiswa.forEach(s => {
                 if(s.baju === 'S') rekap.total.S++; else if(s.baju === 'M') rekap.total.M++; else if(s.baju === 'L') rekap.total.L++; else if(s.baju === 'XL') rekap.total.XL++;
@@ -662,27 +736,14 @@
             });
             
             if (kat === "Sekolah") {
-                doc.autoTable({
-                    head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]],
-                    body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 }
-                });
+                doc.autoTable({ head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]], body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 } });
             } else {
-                let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => {
-                    let agg = schoolAgg[sch];
-                    return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total];
-                });
-                doc.autoTable({
-                    head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]],
-                    body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, 
-                    styles: { fontSize: 8.5, halign: 'center' }, columnStyles: { 0: { halign: 'left' } }
-                });
+                let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => { let agg = schoolAgg[sch]; return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total]; });
+                doc.autoTable({ head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]], body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] },  styles: { fontSize: 8.5, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } });
             }
             
-            let finalY = doc.lastAutoTable.finalY + 10;
-            if (finalY > 230) { doc.addPage(); finalY = 20; }
-
-            doc.setFont("Helvetica", "bold"); doc.setFontSize(10); 
-            doc.text("REKAPITULASI LOGISTIK UKURAN BAJU TERPROSES:", 14, finalY);
+            let finalY = doc.lastAutoTable.finalY + 10; if (finalY > 230) { doc.addPage(); finalY = 20; }
+            doc.setFont("Helvetica", "bold"); doc.setFontSize(10); doc.text("REKAPITULASI LOGISTIK UKURAN BAJU TERPROSES:", 14, finalY);
             
             doc.autoTable({
                 head: [["Keterangan Validasi", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Penerima"]],
