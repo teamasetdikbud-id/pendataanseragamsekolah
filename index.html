@@ -170,7 +170,6 @@
         <div id="appDinas" class="fade-in">
             <h4 class="mb-4 border-bottom pb-2 fw-bold text-secondary">📊 Portal Pemantauan & Verifikasi Dinas</h4>
             
-            <!-- [BARU] KARTU TOTAL KESELURUHAN -->
             <div class="row g-3 mb-3 text-center">
                 <div class="col-md-4 col-12">
                     <div class="card bg-success text-white p-3 shadow-sm border-0">
@@ -192,7 +191,6 @@
                 </div>
             </div>
 
-            <!-- KARTU INFO GENDER & JENJANG -->
             <div class="row g-3 mb-4 text-center">
                 <div class="col-md-3 col-6">
                     <div class="card bg-info text-white p-3 shadow-sm border-0">
@@ -292,7 +290,7 @@
         // =====================================
         // MASUKKAN URL WEB APP ANDA DI SINI
         // =====================================
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwRQ63PoxFmc33DJPVmP_8dYM3Y3p-gyMSI07efsSp0zOeithoXJEXq_pBlAK8s-B6EtQ/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwYVWNiBGuaIqU003LSKqt4Up9fst2OhOSUpf47mUezKvbXO9BnxttMSat_-3x7fgA2lQ/exec";
         
         let sessionInfo = { npsn: null, namaSekolah: null, waOperator: null, dinasUser: null, role: null };
         let currentDataSiswa = [];
@@ -330,7 +328,6 @@
             document.querySelectorAll('#tableBodyDinas tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(f) ? '' : 'none');
         });
 
-        // --- LOGIN SEKOLAH ---
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (loginStep === 1) {
@@ -355,7 +352,6 @@
             }
         });
 
-        // --- LOGIN DINAS ---
         document.getElementById('formLoginDinas').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitDinas'); btn.innerText = "Memverifikasi..."; btn.disabled = true;
@@ -377,20 +373,23 @@
             btn.innerText = "Masuk Dashboard Dinas"; btn.disabled = false;
         });
 
-        // --- LOAD DATA SEKOLAH ---
         async function loadData() {
             const tbody = document.getElementById('tableBody'); tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Memuat...</td></tr>";
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "read", npsn: sessionInfo.npsn }) });
-                const result = await res.json(); tbody.innerHTML = ""; let s=0, m=0, l=0, xl=0;
+                const result = await res.json(); 
+                let s=0, m=0, l=0, xl=0;
+                
                 if(result.status === "success" && result.data.length > 0) {
                     currentDataSiswa = result.data;
+                    let htmlTable = ""; // OPTIMASI: Kumpulkan HTML di satu variabel
+                    
                     result.data.forEach(item => {
                         let size = item['Ukuran Baju']; if(size === 'S') s++; else if(size === 'M') m++; else if(size === 'L') l++; else if(size === 'XL') xl++;
                         let doc = item['File Kades'] ? `<a href="${item['File Kades']}" target="_blank" class="badge bg-primary text-decoration-none">Buka Surat</a>` : '<span class="text-muted">Tidak ada</span>';
                         let st = item['Status Verifikasi'] === 'Disetujui' ? `<span class="badge bg-success">Disetujui</span>` : (item['Status Verifikasi'] === 'Ditolak' ? `<span class="badge bg-danger">Ditolak</span>` : `<span class="badge bg-warning text-dark">Proses</span>`);
                         
-                        tbody.innerHTML += `<tr>
+                        htmlTable += `<tr>
                             <td><strong>${item['Nama Siswa']}</strong><br><small class="text-muted">NISN: ${item['NISN']} | Kelas: ${item['Kelas']}<br>NIK: ${item['NIK']}</small></td>
                             <td>${item['Tempat Lahir']}, ${item['Tanggal Lahir']}<br><span class="text-danger small fw-bold">${item['Penghasilan']}</span></td>
                             <td class="text-center">${size}<br>${doc}</td>
@@ -403,12 +402,14 @@
                             </td>
                         </tr>`;
                     });
-                } else { tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Belum ada data.</td></tr>"; }
+                    tbody.innerHTML = htmlTable; // OPTIMASI: Render 1 kali di akhir proses
+                } else { 
+                    tbody.innerHTML = "<tr><td colspan='5' class='text-center'>Belum ada data.</td></tr>"; 
+                }
                 document.getElementById('countS').innerText = s; document.getElementById('countM').innerText = m; document.getElementById('countL').innerText = l; document.getElementById('countXL').innerText = xl;
             } catch(e) { tbody.innerHTML = "<tr><td colspan='5' class='text-center text-danger'>Gagal memuat.</td></tr>"; }
         }
 
-        // --- SIMPAN DATA ---
         document.getElementById('formSiswa').addEventListener('submit', async (e) => {
             e.preventDefault(); const btn = document.getElementById('btnSimpan'); btn.innerText = "Menyimpan..."; btn.disabled = true;
             const fileInput = document.getElementById('fileKades'); const file = fileInput.files[0]; let base64File = null;
@@ -460,29 +461,16 @@
             } catch (e) { alert("Terjadi kesalahan koneksi."); btn.innerHTML = originalText; btn.disabled = false; }
         }
 
-        // --- DASHBOARD DINAS ---
         let barChartInst = null; let pieChartInst = null;
-
-        // Custom Plugin Chart.js untuk memunculkan Persentase di atas Batang
         const pluginDrawPercent = {
             id: 'drawPercentPlugin',
             afterDatasetsDraw(chart) {
                 const { ctx, data, scales: { x, y } } = chart;
-                ctx.save();
-                ctx.font = 'bold 11px sans-serif';
-                ctx.fillStyle = '#333';
-                ctx.textAlign = 'center';
-                
+                ctx.save(); ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#333'; ctx.textAlign = 'center';
                 for (let i = 0; i < data.labels.length; i++) {
-                    let sudah = data.datasets[0].data[i]; // Jumlah Sekolah Sudah Mengisi
-                    let belum = data.datasets[1].data[i]; // Jumlah Sekolah Belum Mengisi
-                    let total = sudah + belum;
-                    
+                    let sudah = data.datasets[0].data[i]; let belum = data.datasets[1].data[i]; let total = sudah + belum;
                     if (sudah > 0 && total > 0) {
-                        let persen = ((sudah / total) * 100).toFixed(0); // Pembulatan persen
-                        let xPos = x.getPixelForValue(i);
-                        // Tempatkan teks sedikit di atas batang tumpukan (total)
-                        let yPos = y.getPixelForValue(total) - 8; 
+                        let persen = ((sudah / total) * 100).toFixed(0); let xPos = x.getPixelForValue(i); let yPos = y.getPixelForValue(total) - 8; 
                         ctx.fillText(persen + '%', xPos, yPos);
                     }
                 }
@@ -507,8 +495,6 @@
             let filteredSiswa = masterSiswa.filter(s => jenjangDipilih === "Semua" || s.jenjang === jenjangDipilih);
             let bajuCounts = { 'S': 0, 'M': 0, 'L': 0, 'XL': 0 };
             let kecMapStats = {};
-            
-            // Variabel Hitungan L/P Baru
             let l_sd = 0, p_sd = 0, l_smp = 0, p_smp = 0;
             
             masterSekolah.forEach(sch => {
@@ -520,62 +506,26 @@
             filteredSiswa.forEach(s => {
                 if(bajuCounts[s.baju] !== undefined) bajuCounts[s.baju]++;
                 if(kecMapStats[s.kecamatan]) kecMapStats[s.kecamatan].sudahNpsn.add(s.npsn);
-                
-                // Perhitungan Kartu SD & SMP
-                if (s.jenjang === 'SD') {
-                    if (s.jk === 'Laki-laki') l_sd++;
-                    else if (s.jk === 'Perempuan') p_sd++;
-                } else if (s.jenjang === 'SMP') {
-                    if (s.jk === 'Laki-laki') l_smp++;
-                    else if (s.jk === 'Perempuan') p_smp++;
-                }
+                if (s.jenjang === 'SD') { if (s.jk === 'Laki-laki') l_sd++; else if (s.jk === 'Perempuan') p_sd++; } 
+                else if (s.jenjang === 'SMP') { if (s.jk === 'Laki-laki') l_smp++; else if (s.jk === 'Perempuan') p_smp++; }
             });
 
-            // Update UI Kartu Baru (Total Keseluruhan)
             document.getElementById('countTotal_SD').innerText = (l_sd + p_sd);
             document.getElementById('countTotal_SMP').innerText = (l_smp + p_smp);
             document.getElementById('countTotal_All').innerText = (l_sd + p_sd + l_smp + p_smp);
+            document.getElementById('countL_SD').innerText = l_sd; document.getElementById('countP_SD').innerText = p_sd;
+            document.getElementById('countL_SMP').innerText = l_smp; document.getElementById('countP_SMP').innerText = p_smp;
 
-            // Update UI Kartu Gender
-            document.getElementById('countL_SD').innerText = l_sd;
-            document.getElementById('countP_SD').innerText = p_sd;
-            document.getElementById('countL_SMP').innerText = l_smp;
-            document.getElementById('countP_SMP').innerText = p_smp;
-
-            // Perhitungan Grafik Batang (Angka Asli Sekolah)
             let labelsKec = []; let dataSudah = []; let dataBelum = [];
             for (let kec in kecMapStats) {
-                labelsKec.push(kec);
-                let total = kecMapStats[kec].total;
-                let sudah = kecMapStats[kec].sudahNpsn.size;
-                let belum = total - sudah;
-
-                dataSudah.push(sudah);
-                dataBelum.push(belum);
+                labelsKec.push(kec); let total = kecMapStats[kec].total; let sudah = kecMapStats[kec].sudahNpsn.size; let belum = total - sudah;
+                dataSudah.push(sudah); dataBelum.push(belum);
             }
 
             if(barChartInst) barChartInst.destroy();
             barChartInst = new Chart(document.getElementById('barChart').getContext('2d'), { 
-                type: 'bar', 
-                data: { 
-                    labels: labelsKec, 
-                    datasets: [
-                        { label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, 
-                        { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }
-                    ] 
-                }, 
-                plugins: [pluginDrawPercent], // Mengaktifkan custom plugin persen di sini
-                options: { 
-                    responsive: true, 
-                    animation: { duration: 600 },
-                    layout: {
-                        padding: { top: 20 } // Beri jarak di atas supaya angka persen tidak terpotong
-                    },
-                    scales: { 
-                        x: { stacked: true }, 
-                        y: { stacked: true } // Skala Y kembali mengikuti jumlah asli (tidak fix 100)
-                    }
-                } 
+                type: 'bar', data: { labels: labelsKec, datasets: [{ label: 'Sudah Mengisi', data: dataSudah, backgroundColor: '#800080' }, { label: 'Belum Mengisi', data: dataBelum, backgroundColor: '#C0C0C0' }] }, 
+                plugins: [pluginDrawPercent], options: { responsive: true, animation: { duration: 600 }, layout: { padding: { top: 20 } }, scales: { x: { stacked: true }, y: { stacked: true } } } 
             });
 
             if(pieChartInst) pieChartInst.destroy();
@@ -585,12 +535,15 @@
         }
 
         function renderTabelDinas(siswaArray) {
-            const tbody = document.getElementById('tableBodyDinas'); tbody.innerHTML = "";
+            const tbody = document.getElementById('tableBodyDinas');
+            
+            // OPTIMASI: Hindari memodifikasi DOM (innerHTML) di dalam sebuah Loop berulang kali, ini menyebabkan tab freeze!
             if(siswaArray.length > 0) {
+                let htmlTable = "";
                 siswaArray.forEach(item => {
                     let doc = item.file ? `<a href="${item.file}" target="_blank" class="badge bg-primary text-decoration-none">Cek Surat</a>` : '<span class="text-muted">Kosong</span>';
                     let st = item.status === 'Disetujui' ? `<span class="badge bg-success">Disetujui</span>` : (item.status === 'Ditolak' ? `<span class="badge bg-danger">Ditolak</span>` : `<span class="badge bg-warning text-dark">Proses</span>`);
-                    tbody.innerHTML += `<tr>
+                    htmlTable += `<tr>
                         <td><strong>${item.sekolah}</strong><br><small class="text-muted">${item.kecamatan} (${item.jenjang})</small></td>
                         <td><strong>${item.nama}</strong><br><small class="text-muted">NISN: ${item.nisn} | Kelas: ${item.kelas}</small></td>
                         <td class="text-danger fw-bold"><small>${item.penghasilan}</small></td>
@@ -600,7 +553,10 @@
                             <button class="btn btn-xs btn-danger py-0 px-1 font-monospace" onclick="verifikasiSiswa('${item.id}', 'Ditolak')">❌</button>
                         </td></tr>`;
                 });
-            } else { tbody.innerHTML = "<tr><td colspan='6' class='text-center'>Tidak ada data.</td></tr>"; }
+                tbody.innerHTML = htmlTable; // OPTIMASI: Pasang HTML ke dalam UI hanya satu kali di bagian akhir
+            } else { 
+                tbody.innerHTML = "<tr><td colspan='6' class='text-center'>Tidak ada data.</td></tr>"; 
+            }
         }
 
         async function verifikasiSiswa(id, status) {
@@ -620,144 +576,74 @@
             try { const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "add_admin", newUsername: document.getElementById('newAdminUser').value, newPassword: document.getElementById('newAdminPass').value }) }); const r = await res.json(); alert(r.message); if(r.status === "success") document.getElementById('formTambahAdmin').reset(); } catch(e) { alert("Gagal meregistrasi."); }
         });
 
-        // =========================================================
-        // EKSPOR DATA MODAL (EXCEL & PDF)
-        // =========================================================
-        
         function bukaModalPDF() {
             if(!rawDinasData) { alert("Data belum termuat, harap tunggu..."); return; }
             document.getElementById('pdfKategori').value = "Semua"; 
-            document.getElementById('wrapPdfKecamatan').classList.add('d-none');
-            document.getElementById('wrapPdfSub').classList.add('d-none');
+            document.getElementById('wrapPdfKecamatan').classList.add('d-none'); document.getElementById('wrapPdfSub').classList.add('d-none');
             try { let m = new bootstrap.Modal(document.getElementById('modalExportPDF')); m.show(); } catch(e) {}
         }
-
         function aturOpsiPDF() {
-            const kat = document.getElementById('pdfKategori').value;
-            const wrapKec = document.getElementById('wrapPdfKecamatan');
-            const selectKec = document.getElementById('pdfKecamatan');
-            const wrapSub = document.getElementById('wrapPdfSub'); 
-            const sub = document.getElementById('pdfSubKategori'); 
-            const lbl = document.getElementById('lblPdfSub');
-            
+            const kat = document.getElementById('pdfKategori').value; const wrapKec = document.getElementById('wrapPdfKecamatan'); const selectKec = document.getElementById('pdfKecamatan'); const wrapSub = document.getElementById('wrapPdfSub'); const sub = document.getElementById('pdfSubKategori'); const lbl = document.getElementById('lblPdfSub');
             sub.innerHTML = ""; selectKec.innerHTML = "";
-
             if (kat === "Kecamatan") {
-                wrapKec.classList.add('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Kecamatan:";
-                let unik = new Set();
+                wrapKec.classList.add('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Kecamatan:"; let unik = new Set();
                 if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unik.add(s.kecamatan); }); }
                 Array.from(unik).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; });
             } else if (kat === "Sekolah") {
-                wrapKec.classList.remove('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Sekolah:";
-                let unikKec = new Set();
+                wrapKec.classList.remove('d-none'); wrapSub.classList.remove('d-none'); lbl.innerText = "Pilih Sekolah:"; let unikKec = new Set();
                 if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan) unikKec.add(s.kecamatan); }); }
                 Array.from(unikKec).sort().forEach(val => { selectKec.innerHTML += `<option value="${val}">${val}</option>`; });
                 updateOpsiSekolah(); 
             } else { wrapKec.classList.add('d-none'); wrapSub.classList.add('d-none'); }
         }
-
         function updateOpsiSekolah() {
-            const selectedKec = document.getElementById('pdfKecamatan').value; const sub = document.getElementById('pdfSubKategori'); sub.innerHTML = "";
-            let unikSekolah = new Set();
+            const selectedKec = document.getElementById('pdfKecamatan').value; const sub = document.getElementById('pdfSubKategori'); sub.innerHTML = ""; let unikSekolah = new Set();
             if(rawDinasData && rawDinasData.data.listSiswa) { rawDinasData.data.listSiswa.forEach(s => { if(s.kecamatan === selectedKec && s.sekolah) unikSekolah.add(s.sekolah); }); }
-            if(unikSekolah.size > 0) { Array.from(unikSekolah).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; }); } 
-            else { sub.innerHTML = `<option value="">-- Tidak ada sekolah di kecamatan ini --</option>`; }
+            if(unikSekolah.size > 0) { Array.from(unikSekolah).sort().forEach(val => { sub.innerHTML += `<option value="${val}">${val}</option>`; }); } else { sub.innerHTML = `<option value="">-- Tidak ada sekolah di kecamatan ini --</option>`; }
         }
-
         function getFilteredArrayData() {
-            if(!rawDinasData) return [];
-            const jenjangDipilih = document.getElementById('filterJenjang').value;
-            let list = rawDinasData.data.listSiswa.filter(s => jenjangDipilih === "Semua" || s.jenjang === jenjangDipilih);
-            let filterText = document.getElementById('searchDinas').value.toLowerCase();
-            if (filterText) { list = list.filter(s => s.nama.toLowerCase().includes(filterText) || s.sekolah.toLowerCase().includes(filterText) || s.nisn.includes(filterText)); }
+            if(!rawDinasData) return []; const jenjangDipilih = document.getElementById('filterJenjang').value; let list = rawDinasData.data.listSiswa.filter(s => jenjangDipilih === "Semua" || s.jenjang === jenjangDipilih);
+            let filterText = document.getElementById('searchDinas').value.toLowerCase(); if (filterText) { list = list.filter(s => s.nama.toLowerCase().includes(filterText) || s.sekolah.toLowerCase().includes(filterText) || s.nisn.includes(filterText)); }
             return list;
         }
-
         function exportToExcel() {
-            let dataSiswa = getFilteredArrayData();
-            if(dataSiswa.length === 0) { alert("Data kosong / tidak ditemukan!"); return; }
-            
+            let dataSiswa = getFilteredArrayData(); if(dataSiswa.length === 0) { alert("Data kosong / tidak ditemukan!"); return; }
             let exportData = dataSiswa.map((s, idx) => ({
-                "No": idx + 1, "Asal Sekolah": s.sekolah, "Kecamatan": s.kecamatan, "Jenjang": s.jenjang,
-                "Nama Lengkap": s.nama, "NISN": s.nisn, "Kelas": s.kelas, "NIK Siswa": s.nik, "No. KK": s.noKk,
-                "Tempat Lahir": s.tempatLahir, "Tanggal Lahir": s.tanggalLahir, "Jenis Kelamin": s.jk, "Umur": s.umur,
-                "Nama Ayah": s.namaAyah, "Nama Ibu Kandung": s.namaIbu, "Penghasilan Orang Tua": s.penghasilan,
+                "No": idx + 1, "Asal Sekolah": s.sekolah, "Kecamatan": s.kecamatan, "Jenjang": s.jenjang, "Nama Lengkap": s.nama, "NISN": s.nisn, "Kelas": s.kelas, "NIK Siswa": s.nik, "No. KK": s.noKk,
+                "Tempat Lahir": s.tempatLahir, "Tanggal Lahir": s.tanggalLahir, "Jenis Kelamin": s.jk, "Umur": s.umur, "Nama Ayah": s.namaAyah, "Nama Ibu Kandung": s.namaIbu, "Penghasilan Orang Tua": s.penghasilan,
                 "Ukuran Baju": s.baju, "Tautan Berkas Kades": s.file, "Status Verifikasi": s.status
             }));
-
             const ws = XLSX.utils.json_to_sheet(exportData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data_Siswa");
             ws['!cols'] = [{wch:5},{wch:25},{wch:18},{wch:10},{wch:25},{wch:15},{wch:10},{wch:18},{wch:18},{wch:15},{wch:15},{wch:15},{wch:8},{wch:20},{wch:20},{wch:22},{wch:12},{wch:30},{wch:18}];
             XLSX.writeFile(wb, `Data_Siswa_Miskin_Inputan.xlsx`);
         }
-
         function eksekusiCetakPDF() {
-            if(!rawDinasData) { alert("Data kosong!"); return; }
-            
-            const kat = document.getElementById('pdfKategori').value;
-            const sub = document.getElementById('pdfSubKategori').value;
-            
-            let dataSiswa = rawDinasData.data.listSiswa;
-            let labelFilter = "";
-
+            if(!rawDinasData) { alert("Data kosong!"); return; } const kat = document.getElementById('pdfKategori').value; const sub = document.getElementById('pdfSubKategori').value;
+            let dataSiswa = rawDinasData.data.listSiswa; let labelFilter = "";
             if (kat === "SD" || kat === "SMP" || kat === "SMA") { dataSiswa = dataSiswa.filter(s => s.jenjang === kat); labelFilter = `Tingkat Jenjang: ${kat}`; } 
             else if (kat === "Kecamatan") { dataSiswa = dataSiswa.filter(s => s.kecamatan === sub); labelFilter = `Area Kecamatan: ${sub}`; } 
-            else if (kat === "Sekolah") { dataSiswa = dataSiswa.filter(s => s.sekolah === sub); labelFilter = `Nama Sekolah: ${sub}`; } 
-            else { labelFilter = "Semua Jenjang / Semua Daerah"; }
-
+            else if (kat === "Sekolah") { dataSiswa = dataSiswa.filter(s => s.sekolah === sub); labelFilter = `Nama Sekolah: ${sub}`; } else { labelFilter = "Semua Jenjang / Semua Daerah"; }
             if(dataSiswa.length === 0) { alert("Tidak ada data untuk kategori yang dipilih!"); return; }
-            
             const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-            
             doc.setFont("Helvetica", "bold"); doc.setFontSize(13); doc.text("REKAPITULASI NASIONAL DATA SERAGAM SEKOLAH", 14, 15);
-            doc.setFontSize(10); doc.setFont("Helvetica", "normal");
-            doc.text(`Kriteria Filter Laporan: ${labelFilter}`, 14, 21);
-            doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
-            
+            doc.setFontSize(10); doc.setFont("Helvetica", "normal"); doc.text(`Kriteria Filter Laporan: ${labelFilter}`, 14, 21); doc.text(`Dicetak Pada Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 26);
             let rekap = { total: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }, ditolak: { S: 0, M: 0, L: 0, XL: 0, Total: 0 }, disetujui: { S: 0, M: 0, L: 0, XL: 0, Total: 0 } };
             let schoolAgg = {}; let bodyDataReal = [];
-
             dataSiswa.forEach(s => {
-                if(s.baju === 'S') rekap.total.S++; else if(s.baju === 'M') rekap.total.M++; else if(s.baju === 'L') rekap.total.L++; else if(s.baju === 'XL') rekap.total.XL++;
-                rekap.total.Total++;
-                
-                if (s.status === 'Ditolak') {
-                    if(s.baju === 'S') rekap.ditolak.S++; else if(s.baju === 'M') rekap.ditolak.M++; else if(s.baju === 'L') rekap.ditolak.L++; else if(s.baju === 'XL') rekap.ditolak.XL++;
-                    rekap.ditolak.Total++;
-                } else if (s.status === 'Disetujui') {
-                    if(s.baju === 'S') rekap.disetujui.S++; else if(s.baju === 'M') rekap.disetujui.M++; else if(s.baju === 'L') rekap.disetujui.L++; else if(s.baju === 'XL') rekap.disetujui.XL++;
-                    rekap.disetujui.Total++;
-                }
-
+                if(s.baju === 'S') rekap.total.S++; else if(s.baju === 'M') rekap.total.M++; else if(s.baju === 'L') rekap.total.L++; else if(s.baju === 'XL') rekap.total.XL++; rekap.total.Total++;
+                if (s.status === 'Ditolak') { if(s.baju === 'S') rekap.ditolak.S++; else if(s.baju === 'M') rekap.ditolak.M++; else if(s.baju === 'L') rekap.ditolak.L++; else if(s.baju === 'XL') rekap.ditolak.XL++; rekap.ditolak.Total++; } 
+                else if (s.status === 'Disetujui') { if(s.baju === 'S') rekap.disetujui.S++; else if(s.baju === 'M') rekap.disetujui.M++; else if(s.baju === 'L') rekap.disetujui.L++; else if(s.baju === 'XL') rekap.disetujui.XL++; rekap.disetujui.Total++; }
                 if (!schoolAgg[s.sekolah]) schoolAgg[s.sekolah] = { S: 0, M: 0, L: 0, XL: 0, Total: 0 };
-                if(s.baju === 'S') schoolAgg[s.sekolah].S++; else if(s.baju === 'M') schoolAgg[s.sekolah].M++; else if(s.baju === 'L') schoolAgg[s.sekolah].L++; else if(s.baju === 'XL') schoolAgg[s.sekolah].XL++;
-                schoolAgg[s.sekolah].Total++;
-
+                if(s.baju === 'S') schoolAgg[s.sekolah].S++; else if(s.baju === 'M') schoolAgg[s.sekolah].M++; else if(s.baju === 'L') schoolAgg[s.sekolah].L++; else if(s.baju === 'XL') schoolAgg[s.sekolah].XL++; schoolAgg[s.sekolah].Total++;
                 bodyDataReal.push([ s.sekolah, `${s.nama}\n(Kelas: ${s.kelas})`, s.penghasilan, s.baju, s.status ]);
             });
-            
-            if (kat === "Sekolah") {
-                doc.autoTable({ head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]], body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 } });
-            } else {
-                let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => { let agg = schoolAgg[sch]; return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total]; });
-                doc.autoTable({ head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]], body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] },  styles: { fontSize: 8.5, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } });
-            }
-            
+            if (kat === "Sekolah") { doc.autoTable({ head: [["Asal Sekolah", "Nama Siswa & Kelas", "Ekonomi Orang Tua", "Baju", "Status"]], body: bodyDataReal, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 8.5 } }); } 
+            else { let bodyDataAgg = Object.keys(schoolAgg).sort().map(sch => { let agg = schoolAgg[sch]; return [sch, agg.S, agg.M, agg.L, agg.XL, agg.Total]; });
+                doc.autoTable({ head: [["Nama Sekolah Terdaftar", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Baju"]], body: bodyDataAgg, startY: 31, theme: 'striped', headStyles: { fillColor: [41, 128, 185] },  styles: { fontSize: 8.5, halign: 'center' }, columnStyles: { 0: { halign: 'left' } } }); }
             let finalY = doc.lastAutoTable.finalY + 10; if (finalY > 230) { doc.addPage(); finalY = 20; }
             doc.setFont("Helvetica", "bold"); doc.setFontSize(10); doc.text("REKAPITULASI LOGISTIK UKURAN BAJU TERPROSES:", 14, finalY);
-            
-            doc.autoTable({
-                head: [["Keterangan Validasi", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Penerima"]],
-                body: [
-                    ["Total Pengajuan", rekap.total.S, rekap.total.M, rekap.total.L, rekap.total.XL, rekap.total.Total],
-                    ["Jumlah Ditolak", rekap.ditolak.S, rekap.ditolak.M, rekap.ditolak.L, rekap.ditolak.XL, rekap.ditolak.Total],
-                    ["Jumlah Disetujui (Final)", rekap.disetujui.S, rekap.disetujui.M, rekap.disetujui.L, rekap.disetujui.XL, rekap.disetujui.Total]
-                ],
-                startY: finalY + 4, theme: 'grid', headStyles: { fillColor: [52, 73, 94] }, 
-                styles: { fontSize: 9, halign: 'center' }, columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } }
-            });
-            
-            doc.save(`Laporan_Bantuan_Baju_${kat}.pdf`);
-            document.getElementById('btnCloseModalPDF').click();
+            doc.autoTable({ head: [["Keterangan Validasi", "Ukuran S", "Ukuran M", "Ukuran L", "Ukuran XL", "Total Penerima"]], body: [ ["Total Pengajuan", rekap.total.S, rekap.total.M, rekap.total.L, rekap.total.XL, rekap.total.Total], ["Jumlah Ditolak", rekap.ditolak.S, rekap.ditolak.M, rekap.ditolak.L, rekap.ditolak.XL, rekap.ditolak.Total], ["Jumlah Disetujui (Final)", rekap.disetujui.S, rekap.disetujui.M, rekap.disetujui.L, rekap.disetujui.XL, rekap.disetujui.Total] ], startY: finalY + 4, theme: 'grid', headStyles: { fillColor: [52, 73, 94] }, styles: { fontSize: 9, halign: 'center' }, columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } } });
+            doc.save(`Laporan_Bantuan_Baju_${kat}.pdf`); document.getElementById('btnCloseModalPDF').click();
         }
     </script>
 </body>
